@@ -6,16 +6,14 @@ from differ.utils import normalize_index
 
 class ManifestDiffer:
     def diff(
-        self,
-        old_manifest: list[dict],
-        new_manifest: list[dict]
+        self, old_manifest: list[dict], new_manifest: list[dict]
     ) -> list[FieldChange]:
         changes: list[FieldChange] = []
 
         old_by_id = {resource_identity(m): m for m in old_manifest}
         new_by_id = {resource_identity(m): m for m in new_manifest}
 
-        all_ids = set(old_by_id) | set (new_by_id)
+        all_ids = set(old_by_id) | set(new_by_id)
 
         for resource_id in all_ids:
             kind, namespace, name = resource_id
@@ -23,13 +21,15 @@ class ManifestDiffer:
             new_res = new_by_id.get(resource_id)
 
             if old_res is None:
-                changes.append(FieldChange(
-                    resource_kind=kind,
-                    resource_name=name,
-                    field_path="<resource>",
-                    old_value=None,
-                    new_value="<created>"
-                ))
+                changes.append(
+                    FieldChange(
+                        resource_kind=kind,
+                        resource_name=name,
+                        field_path="<resource>",
+                        old_value=None,
+                        new_value="<created>",
+                    )
+                )
                 continue
 
             if new_res is None:
@@ -39,23 +39,19 @@ class ManifestDiffer:
                         resource_name=name,
                         field_path="<resource>",
                         old_value="<existed>",
-                        new_value=None
+                        new_value=None,
                     )
                 )
                 continue
 
             changes.extend(self._diff_resource(kind, name, old_res, new_res))
-        
+
         return changes
-    
+
     def _diff_resource(
-        self,
-        kind: str,
-        name: str,
-        old_res: dict,
-        new_res: dict
+        self, kind: str, name: str, old_res: dict, new_res: dict
     ) -> list[FieldChange]:
-        changes:list[FieldChange] = []
+        changes: list[FieldChange] = []
 
         old_flat = dict(flatten(old_res))
         new_flat = dict(flatten(new_res))
@@ -74,14 +70,16 @@ class ManifestDiffer:
             if _is_noise(normalize_path):
                 continue
 
-            changes.append(FieldChange(
-                resource_kind=kind,
-                resource_name=name,
-                field_path=normalize_path,
-                old_value=old_value,
-                new_value=new_value
-            ))
-        
+            changes.append(
+                FieldChange(
+                    resource_kind=kind,
+                    resource_name=name,
+                    field_path=normalize_path,
+                    old_value=old_value,
+                    new_value=new_value,
+                )
+            )
+
         return changes
 
 
@@ -91,6 +89,6 @@ def _is_noise(path: str) -> bool:
         "metadata.annotations.deployment.kubernetes.io/revision",
         "metadata.resourceVersion",
         "metadata.uid",
-        "status."
+        "status.",
     ]
     return any(path.startswith(prefix) for prefix in noise_prefixes)
