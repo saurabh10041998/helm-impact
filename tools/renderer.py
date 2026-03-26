@@ -21,13 +21,12 @@ class TableRenderer:
             Severity.WARNING: "yellow",
             Severity.DANGER: "red",
             Severity.BLOCKER: "bold red",
-            Severity.UNCLEAR: "magenta",
         }
 
         for v in sorted(verdicts, key=lambda x: x.severity.value, reverse=True):
             color = severity_colors.get(v.severity, "white")
             table.add_row(
-                f"{v.field_change.resource_kind} {v.field_change.resource_name}",
+                f"{v.field_change.resource_kind}/{v.field_change.resource_name}",
                 v.field_change.field_path,
                 f"[{color}]{v.severity.name}[/{color}]",
                 v.kind.name,

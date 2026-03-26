@@ -6,8 +6,8 @@ from core.rules.base import Rule
 
 
 class RuleEngine:
-    def __init__(self, rules):
-        self.rules = []
+    def __init__(self):
+        self._rules = []
 
     def register(self, rule: Rule) -> None:
         self._rules.append(rule)
