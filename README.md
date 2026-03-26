@@ -1,6 +1,9 @@
 # helm-impact
 helm upgrade impact analyzer plugin
 
+# demo
+![demo](assets/screencast.svg)
+
 # project structure
 ```bash
 helm-impact
