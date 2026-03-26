@@ -3,7 +3,7 @@ import yaml
 from typing import Any, Iterator
 
 
-def load_manifest(yaml_text: str) -> list[dict]:
+def load_manifests(yaml_text: str) -> list[dict]:
     """
     A single helm template output may contain multiple YAML documents separated by '---'.
     Parse them all
