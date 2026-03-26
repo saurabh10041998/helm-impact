@@ -2,7 +2,8 @@ import re
 from core.model import ImpactVerdict
 from core.model import Severity
 from core.model import ImpactKind
-from core.rules.base import FuncRule 
+from core.rules.base import FuncRule
+
 
 def _path_matches(pattern: str, path: str) -> bool:
     # convert wildcard pattern to regex
