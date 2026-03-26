@@ -13,7 +13,7 @@ helm-impact
 │       ├── engine.py          #  houses rule engine
 │       ├── registry.py        #  rules registry
 │       ├── pvc.py             #  verdict rules for pvc  change
-│       ├── statefulset.py     #  verdict rules for deployment change 
+│       ├── statefulset.py     #  verdict rules for statefulset change 
 │       └── deployment.py      #  verdict rules for deployment change
 ├── LICENSE
 ├── main.py
