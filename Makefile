@@ -5,3 +5,4 @@ all:
 
 format:
 	black main.py setup.py
+	black core/*.py
