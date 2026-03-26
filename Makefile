@@ -6,3 +6,4 @@ all:
 format:
 	black main.py setup.py
 	black core/*.py
+	black core/rules/*.py

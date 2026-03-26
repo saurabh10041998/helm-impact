@@ -6,12 +6,14 @@ helm upgrade impact analyzer plugin
 helm-impact
 ├── core
 │   ├── __init__.py
-│   └── model.py          # core data structure
+│   ├── model.py
+│   └── rules
+│       ├── __init__.py
+│       └── base.py
 ├── LICENSE
 ├── main.py
 ├── Makefile
 ├── README.md
 ├── setup.cfg
 └── setup.py
-
 ```
