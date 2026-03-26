@@ -14,6 +14,4 @@ def analyze(old_yaml: str, new_yaml: str):
     engine = build_engine()
     verdicts = engine.evaluate_all(changes)
 
-    return [
-        v for v in verdicts if v.kind != ImpactKind.NO_IMPACT
-    ]
+    return [v for v in verdicts if v.kind != ImpactKind.NO_IMPACT]

@@ -4,17 +4,11 @@ from rich.table import Table
 from core.model import ImpactVerdict
 from core.model import Severity
 
+
 class TableRenderer:
-    def render_report(
-        self,
-        verdicts: list[ImpactVerdict]
-    ) -> None:
+    def render_report(self, verdicts: list[ImpactVerdict]) -> None:
         console = Console()
-        table = Table(
-            show_header=True,
-            header_style="bold",
-            show_lines=True
-        )
+        table = Table(show_header=True, header_style="bold", show_lines=True)
         table.add_column("Resource")
         table.add_column("Field", overflow="fold")
         table.add_column("Severity")
@@ -27,7 +21,7 @@ class TableRenderer:
             Severity.WARNING: "yellow",
             Severity.DANGER: "red",
             Severity.BLOCKER: "bold red",
-            Severity.UNCLEAR: "magenta"
+            Severity.UNCLEAR: "magenta",
         }
 
         for v in sorted(verdicts, key=lambda x: x.severity.value, reverse=True):
@@ -38,6 +32,6 @@ class TableRenderer:
                 f"[{color}]{v.severity.name}[/{color}]",
                 v.kind.name,
                 v.description,
-                v.remediation
+                v.remediation,
             )
         console.print(table)

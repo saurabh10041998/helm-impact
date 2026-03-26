@@ -8,3 +8,4 @@ format:
 	black core/*.py
 	black core/rules/*.py
 	black differ/*.py
+	black tools/*.py
