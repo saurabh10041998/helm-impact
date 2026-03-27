@@ -12,3 +12,16 @@ class TestSeverityEnum:
         assert Severity.WARNING.value == "warning"
         assert Severity.DANGER.value == "danger"
         assert Severity.BLOCKER.value == "blocker"
+
+    def test_count(self):
+        assert len(Severity) == 4
+
+    def test_from_value(self):
+        assert Severity("info") == Severity.INFO
+        assert Severity("warning") == Severity.WARNING
+        assert Severity("danger") == Severity.DANGER
+        assert Severity("blocker") == Severity.BLOCKER
+
+    def test_invalid_value_raises(self):
+        with pytest.raises(ValueError):
+            Severity("critical")
