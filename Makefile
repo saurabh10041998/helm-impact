@@ -9,3 +9,4 @@ format:
 	black core/rules/*.py
 	black differ/*.py
 	black tools/*.py
+	black tests/*.py
