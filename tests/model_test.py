@@ -2,11 +2,11 @@ import sys
 import pytest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "core"))
-from model import Severity
-from model import ImpactKind
-from model import FieldChange
-from model import ImpactVerdict
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from core.model import Severity
+from core.model import ImpactKind
+from core.model import FieldChange
+from core.model import ImpactVerdict
 
 
 class TestSeverityEnum:
