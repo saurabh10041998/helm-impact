@@ -9,6 +9,7 @@ from core.model import FieldChange
 from core.model import ImpactVerdict
 
 from core.rules.base import Rule
+from core.rules.base import FuncRule
 
 
 def make_field_change(**kwargs) -> FieldChange:
@@ -131,3 +132,48 @@ def test_rule_subclass_can_set_resource_kind():
 
     rule = DeploymentRule()
     assert rule.resource_kind == "Deployment"
+
+
+def test_funcrule_basic_creation():
+    rule = FuncRule(
+        resource_kind="Deployment",
+        matches_fn=alway_match,
+        verdict_fn=simple_verdict,
+        name="test-rule",
+    )
+    assert rule.resource_kind == "Deployment"
+    assert rule.name == "test-rule"
+
+
+def test_funcrule_none_resource_kind():
+    rule = FuncRule(
+        resource_kind=None,
+        matches_fn=alway_match,
+        verdict_fn=simple_verdict,
+    )
+    assert rule.resource_kind is None
+
+
+def test_funcrule_default_name_is_empty_string():
+    rule = FuncRule(
+        resource_kind=None,
+        matches_fn=alway_match,
+        verdict_fn=simple_verdict,
+    )
+    assert rule.name == ""
+
+
+def test_funcrule_missing_matches_fn_raises():
+    with pytest.raises(TypeError):
+        FuncRule(
+            resource_kind=None,
+            verdict_fn=simple_verdict,
+        )
+
+
+def test_funcrule_missing_verdict_fn_raises():
+    with pytest.raises(TypeError):
+        FuncRule(
+            resource_kind=None,
+            matches_fn=alway_match,
+        )
