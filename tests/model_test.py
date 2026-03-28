@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "core"))
 from model import Severity
 from model import ImpactKind
 from model import FieldChange
+from model import ImpactVerdict
 
 
 class TestSeverityEnum:
@@ -154,3 +155,113 @@ class TestFieldChange:
             field_path="spec.containers[0].image",
         )
         assert "[0]" in fc.field_path
+
+
+class TestImpactVerdict:
+    def _make_fc(self):
+        return FieldChange(
+            resource_kind="Deployment",
+            resource_name="my-app",
+            field_path="spec.replicas",
+            old_value=3,
+            new_value=5,
+        )
+
+    def _make(self, **kwargs):
+        defaults = dict(
+            severity=Severity.WARNING,
+            kind=ImpactKind.ROLLING_RESTART,
+            description="Image changed",
+            remediation="Monitor pod readiness",
+            field_change=self._make_fc(),
+        )
+        return ImpactVerdict(**{**defaults, **kwargs})
+
+    def test_basic_construction(self):
+        v = self._make()
+        assert v.severity == Severity.WARNING
+        assert v.kind == ImpactKind.ROLLING_RESTART
+        assert v.description == "Image changed"
+        assert v.remediation == "Monitor pod readiness"
+
+    def test_field_change_is_attached(self):
+        fc = self._make_fc()
+        v = self._make(field_change=fc)
+        assert v.field_change is fc
+        assert v.field_change.resource_kind == "Deployment"
+
+    def test_blocker_severity(self):
+        v = self._make(
+            severity=Severity.BLOCKER,
+            kind=ImpactKind.DATA_LOSS_RISK,
+            description="PVC shrink attempted",
+            remediation="Revert immediately",
+        )
+        assert v.severity == Severity.BLOCKER
+        assert v.kind == ImpactKind.DATA_LOSS_RISK
+
+    def test_info_severity(self):
+        v = self._make(severity=Severity.INFO, kind=ImpactKind.NO_IMPACT)
+        assert v.severity == Severity.INFO
+
+    def test_danger_severity(self):
+        v = self._make(severity=Severity.DANGER, kind=ImpactKind.DOWNTIME)
+        assert v.severity == Severity.DANGER
+
+    def test_no_impact_kind(self):
+        v = self._make(severity=Severity.INFO, kind=ImpactKind.NO_IMPACT)
+        assert v.kind == ImpactKind.NO_IMPACT
+
+    def test_empty_string_description_allowed(self):
+        v = self._make(description="")
+        assert v.description == ""
+
+    def test_empty_string_remediation_allowed(self):
+        v = self._make(remediation="")
+        assert v.remediation == ""
+
+    def test_long_description(self):
+        long_desc = "x" * 500
+        v = self._make(description=long_desc)
+        assert len(v.description) == 500
+
+    def test_missing_required_fields_raises(self):
+        with pytest.raises(TypeError):
+            ImpactVerdict(severity=Severity.INFO, kind=ImpactKind.NO_IMPACT)
+
+    def test_dataclass_equality(self):
+        v1 = self._make()
+        v2 = self._make()
+        assert v1 == v2
+
+    def test_dataclass_inequality_by_severity(self):
+        v1 = self._make(severity=Severity.INFO)
+        v2 = self._make(severity=Severity.WARNING)
+        assert v1 != v2
+
+    def test_field_change_resource_kind_accessible(self):
+        v = self._make()
+        assert v.field_change.resource_kind == "Deployment"
+
+    def test_field_change_values_accessible(self):
+        v = self._make()
+        assert v.field_change.old_value == 3
+        assert v.field_change.new_value == 5
+
+    def test_pvc_verdict_with_pvc_field_change(self):
+        fc = FieldChange(
+            resource_kind="PersistentVolumeClaim",
+            resource_name="my-pvc",
+            field_path="spec.resources.requests.storage",
+            old_value="10Gi",
+            new_value="5Gi",
+        )
+        v = self._make(
+            severity=Severity.BLOCKER,
+            kind=ImpactKind.DATA_LOSS_RISK,
+            description="PVC storage shrink attempted: 10Gi -> 5Gi",
+            remediation="PVC shrink is NOT supported - revert this change immediately",
+            field_change=fc,
+        )
+        assert v.field_change.resource_kind == "PersistentVolumeClaim"
+        assert v.severity == Severity.BLOCKER
