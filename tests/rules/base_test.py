@@ -2,7 +2,7 @@ import sys
 import pytest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "core"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "core"))
 from model import Severity
 from model import ImpactKind
 from model import FieldChange
