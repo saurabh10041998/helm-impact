@@ -177,3 +177,34 @@ def test_funcrule_missing_verdict_fn_raises():
             resource_kind=None,
             matches_fn=alway_match,
         )
+
+
+def test_funcrule_matches_correct_resource_kind():
+    rule = FuncRule(
+        resource_kind="Deployment",
+        matches_fn=alway_match,
+        verdict_fn=simple_verdict,
+    )
+    assert rule.matches(make_field_change(resource_kind="Deployment")) == True
+    assert rule.matches(make_field_change(resource_kind="Service")) == False
+
+
+def test_funcrule_none_resource_kind_mactches_any_kind():
+    rule = FuncRule(
+        resource_kind=None,
+        matches_fn=alway_match,
+        verdict_fn=simple_verdict,
+    )
+    assert rule.matches(make_field_change(resource_kind="Deployment")) == True
+    assert rule.matches(make_field_change(resource_kind="Service")) == True
+    assert rule.matches(make_field_change(resource_kind="ConfigMap")) == True
+
+
+def test_funcrule_resource_kind_check_is_case_sensitive():
+    rule = FuncRule(
+        resource_kind="Deployment",
+        matches_fn=alway_match,
+        verdict_fn=simple_verdict,
+    )
+    assert rule.matches(make_field_change(resource_kind="deployment")) == False
+    assert rule.matches(make_field_change(resource_kind="DEPLOYMENT")) == False
