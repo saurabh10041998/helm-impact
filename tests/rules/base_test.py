@@ -208,3 +208,65 @@ def test_funcrule_resource_kind_check_is_case_sensitive():
     )
     assert rule.matches(make_field_change(resource_kind="deployment")) == False
     assert rule.matches(make_field_change(resource_kind="DEPLOYMENT")) == False
+
+
+def test_funcrule_matches_fn_returning_false_does_not_match():
+    rule = FuncRule(
+        resource_kind=None,
+        matches_fn=never_match,
+        verdict_fn=simple_verdict,
+    )
+    assert rule.matches(make_field_change()) == False
+
+
+def test_funcrule_resource_kind_mismatch_short_circuits_matches_fn():
+    called = []
+
+    def tracking_match(change: FieldChange) -> bool:
+        called.append(True)
+        return True
+
+    rule = FuncRule(
+        resource_kind="Deployment",
+        matches_fn=tracking_match,
+        verdict_fn=simple_verdict,
+    )
+    assert rule.matches(make_field_change(resource_kind="Service")) == False
+    assert called == []
+
+
+def test_funcrule_matches_fn_received_field_change():
+    received = []
+
+    def tracking_match(change: FieldChange) -> bool:
+        received.append(change)
+        return True
+
+    rule = FuncRule(
+        resource_kind=None,
+        matches_fn=tracking_match,
+        verdict_fn=simple_verdict,
+    )
+    fc = make_field_change()
+    assert rule.matches(fc) == True
+    assert received[0] is fc
+
+
+def test_funcrule_matches_fn_on_field_path():
+    rule = FuncRule(
+        resource_kind=None,
+        matches_fn=lambda fc: fc.field_path == "spec.replicas",
+        verdict_fn=simple_verdict,
+    )
+    assert rule.matches(make_field_change(field_path="spec.replicas")) == True
+    assert rule.matches(make_field_change(field_path="spec.image")) == False
+
+
+def test_funcrule_match_fn_on_value_change():
+    rule = FuncRule(
+        resource_kind="Deployment",
+        matches_fn=lambda fc: fc.new_value == "Recreate",
+        verdict_fn=simple_verdict,
+    )
+    assert rule.matches(make_field_change(new_value="Recreate")) == True
+    assert rule.matches(make_field_change(new_value="RollingUpdate")) == False
