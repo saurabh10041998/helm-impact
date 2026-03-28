@@ -10,7 +10,7 @@ class Rule(ABC):
     Subclass or use FuncRule for simple cases.
     """
 
-    resource_kind: str
+    resource_kind: Optional[str] = None
 
     @abstractmethod
     def matches(self, change: FieldChange) -> bool: ...

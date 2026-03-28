@@ -10,3 +10,4 @@ format:
 	black differ/*.py
 	black tools/*.py
 	black tests/*.py
+	black tests/rules/*.py
