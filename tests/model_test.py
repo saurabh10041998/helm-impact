@@ -265,3 +265,94 @@ class TestImpactVerdict:
         )
         assert v.field_change.resource_kind == "PersistentVolumeClaim"
         assert v.severity == Severity.BLOCKER
+
+
+class TestModelInteraction:
+    def test_verdict_preserves_full_field_change(self):
+        fc = FieldChange(
+            resource_kind="Deployment",
+            resource_name="api-server",
+            field_path="spec.template.spec.containers[*].image",
+            old_value="api-server:v1.0.0",
+            new_value="api-server:v1.1.0",
+        )
+
+        verdict = ImpactVerdict(
+            severity=Severity.WARNING,
+            kind=ImpactKind.ROLLING_RESTART,
+            description="Container image changed from v1.0.0 to v1.1.0",
+            remediation="rolling restart - monitor pod readiness",
+            field_change=fc,
+        )
+        assert verdict.field_change.old_value == "api-server:v1.0.0"
+        assert verdict.field_change.new_value == "api-server:v1.1.0"
+        assert (
+            verdict.field_change.field_path == "spec.template.spec.containers[*].image"
+        )
+
+    def test_multiple_verdicts_independent_field_changes(self):
+        changes = [
+            FieldChange("Deployment", "web-app", "spec.replicas", 3, 5),
+            FieldChange(
+                "Deployment",
+                "web-app",
+                "spec.strategy.type",
+                "RollingUpdate",
+                "Recreate",
+            ),
+            FieldChange(
+                "Deployment",
+                "web-app",
+                "spec.template.spec.containers[*].image",
+                "v1",
+                "v2",
+            ),
+        ]
+        verdicts = [
+            ImpactVerdict(
+                Severity.INFO, ImpactKind.SCALE_EVENT, "Replicas 2->5", "", changes[0]
+            ),
+            ImpactVerdict(
+                Severity.DANGER, ImpactKind.DOWNTIME, "Recreate", "", changes[1]
+            ),
+            ImpactVerdict(
+                Severity.WARNING,
+                ImpactKind.ROLLING_RESTART,
+                "Image change",
+                "",
+                changes[2],
+            ),
+        ]
+
+        assert verdicts[0].field_change.new_value == 5
+        assert verdicts[1].severity == Severity.DANGER
+        assert verdicts[2].kind == ImpactKind.ROLLING_RESTART
+
+    def test_severity_ordering(self):
+        order = [Severity.INFO, Severity.WARNING, Severity.DANGER, Severity.BLOCKER]
+        values = [s.value for s in order]
+        assert values == ["info", "warning", "danger", "blocker"]
+
+    def test_resource_created_verdict(self):
+        fc = FieldChange("Deployment", "new-app", "<resource>", None, "<created>")
+        verdict = ImpactVerdict(
+            severity=Severity.INFO,
+            kind=ImpactKind.NO_IMPACT,
+            description="Resource created",
+            remediation="No action needed",
+            field_change=fc,
+        )
+        assert verdict.field_change.old_value is None
+        assert verdict.field_change.new_value == "<created>"
+
+    def test_resource_deleted_verdict(self):
+        fc = FieldChange("Deployment", "old-app", "<resource>", "<existed>", None)
+        verdict = ImpactVerdict(
+            severity=Severity.WARNING,
+            kind=ImpactKind.DOWNTIME,
+            description="Resource deleted",
+            remediation="Investigate deletion",
+            field_change=fc,
+        )
+        assert verdict.field_change.old_value == "<existed>"
+        assert verdict.field_change.new_value is None
