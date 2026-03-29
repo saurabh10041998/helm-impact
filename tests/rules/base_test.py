@@ -340,3 +340,19 @@ def test_funcrule_verdict_uses_dynamic_description():
     fc = make_field_change(field_path="spec.replicas", old_value=2, new_value=5)
     result = rule.verdict(fc)
     assert result.description == "Replicas changed from 2 -> 5"
+
+
+def test_funcrule_is_instance_of_rule():
+    rule = FuncRule(
+        resource_kind="Deployment", matches_fn=alway_match, verdict_fn=simple_verdict
+    )
+    assert isinstance(rule, Rule)
+
+
+def test_funcrule_satisfies_rule_interface():
+    rule = FuncRule(
+        resource_kind="Deployment", matches_fn=alway_match, verdict_fn=simple_verdict
+    )
+    fc = make_field_change()
+    assert isinstance(rule.matches(fc), bool)
+    assert isinstance(rule.verdict(fc), ImpactVerdict)
