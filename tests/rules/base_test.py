@@ -356,3 +356,51 @@ def test_funcrule_satisfies_rule_interface():
     fc = make_field_change()
     assert isinstance(rule.matches(fc), bool)
     assert isinstance(rule.verdict(fc), ImpactVerdict)
+
+
+def test_funcrule_matches_fn_with_none_old_value():
+    rule = FuncRule(
+        resource_kind="Deployment",
+        matches_fn=lambda c: c.old_value is None,
+        verdict_fn=simple_verdict,
+    )
+    assert rule.matches(make_field_change(old_value=None)) == True
+    assert rule.matches(make_field_change(old_value="DROP_ALL")) == False
+
+
+def test_funcrule_matches_fn_with_zero_value():
+    rule = FuncRule(
+        resource_kind="Deployment",
+        matches_fn=lambda c: c.new_value == 0,
+        verdict_fn=simple_verdict,
+    )
+    assert rule.matches(make_field_change(old_value=None, new_value=0)) == True
+
+
+def test_funcrule_matches_fn_with_boolean_value():
+    rule = FuncRule(
+        resource_kind="Deployment",
+        matches_fn=lambda c: c.new_value == False,
+        verdict_fn=simple_verdict,
+    )
+    assert rule.matches(make_field_change(old_value=True, new_value=False)) == True
+
+
+def test_funcrule_multiple_rules_same_resource_kind():
+    rule_a = FuncRule(
+        "Deployment",
+        lambda c: c.field_path == "spec.replicas",
+        simple_verdict,
+        "replicas",
+    )
+    rule_b = FuncRule(
+        "Deployment", lambda c: c.field_path == "spec.image", simple_verdict, "image"
+    )
+
+    fc_replicas = make_field_change(field_path="spec.replicas")
+    fc_image = make_field_change(field_path="spec.image")
+
+    assert rule_a.matches(fc_replicas) is True
+    assert rule_a.matches(fc_image) is False
+    assert rule_b.matches(fc_replicas) is False
+    assert rule_b.matches(fc_image) is True
