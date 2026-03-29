@@ -270,3 +270,73 @@ def test_funcrule_match_fn_on_value_change():
     )
     assert rule.matches(make_field_change(new_value="Recreate")) == True
     assert rule.matches(make_field_change(new_value="RollingUpdate")) == False
+
+
+def test_funcrule_verdict_returns_impact_verdict():
+    rule = FuncRule(
+        resource_kind="Deployment", matches_fn=alway_match, verdict_fn=simple_verdict
+    )
+    fc = make_field_change()
+    result = rule.verdict(fc)
+    assert isinstance(result, ImpactVerdict)
+
+
+def test_funcrule_verdict_fn_receives_field_change():
+    received = []
+
+    def capturing_verdict(change):
+        received.append(change)
+        return make_verdict(change)
+
+    fc = make_field_change()
+    rule = FuncRule(
+        resource_kind="Deployment", matches_fn=alway_match, verdict_fn=capturing_verdict
+    )
+    result = rule.verdict(fc)
+    assert received[0] is fc
+
+
+def test_funcrule_verdict_reflects_severity():
+    rule = FuncRule(
+        resource_kind="Deployment",
+        matches_fn=alway_match,
+        verdict_fn=lambda c: make_verdict(c, severity=Severity.DANGER),
+    )
+    fc = make_field_change()
+    result = rule.verdict(fc)
+    assert result.severity == Severity.DANGER
+
+
+def test_funcrule_verdict_reflects_kind():
+    rule = FuncRule(
+        resource_kind="Deployment",
+        matches_fn=alway_match,
+        verdict_fn=lambda c: make_verdict(c, kind=ImpactKind.DATA_LOSS_RISK),
+    )
+    fc = make_field_change()
+    result = rule.verdict(fc)
+    assert result.kind == ImpactKind.DATA_LOSS_RISK
+
+
+def test_funcrule_verdict_attaches_field_change():
+    fc = make_field_change(field_path="spec.replicas", old_value=2, new_value=5)
+    rule = FuncRule(
+        resource_kind="Deployment",
+        matches_fn=alway_match,
+        verdict_fn=lambda c: make_verdict(c),
+    )
+    result = rule.verdict(fc)
+    assert result.field_change is fc
+
+
+def test_funcrule_verdict_uses_dynamic_description():
+    rule = FuncRule(
+        resource_kind="Deployment",
+        matches_fn=alway_match,
+        verdict_fn=lambda c: make_verdict(
+            c, description=f"Replicas changed from {c.old_value} -> {c.new_value}"
+        ),
+    )
+    fc = make_field_change(field_path="spec.replicas", old_value=2, new_value=5)
+    result = rule.verdict(fc)
+    assert result.description == "Replicas changed from 2 -> 5"
