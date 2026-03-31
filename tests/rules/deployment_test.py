@@ -120,3 +120,13 @@ def test_image_change_init_container_matches():
     )
     verdict = evaluate_one(fc)
     assert verdict is not None
+
+
+def test_image_change_digest_format_matches():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].image",
+        old_value="my-app@sha256:abc123",
+        new_value="my-app@sha256:def345"
+    )
+    verdict = evaluate_one(fc)
+    verdict is not None
