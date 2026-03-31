@@ -14,13 +14,21 @@ def _path_matches(pattern: str, path: str) -> bool:
     return re.fullmatch(regex_pattern, path) is not None
 
 
+def _any_path_matches(patterns: list[str], path: str) -> bool:
+    return any(_path_matches(p, path) for p in patterns)
+
+
 def _deployment_rules() -> list[FuncRule]:
     return [
         FuncRule(
             resource_kind="Deployment",
             name="image-change",
-            matches_fn=lambda c: _path_matches(
-                "spec.template.spec.containers.[*].image", c.field_path
+            matches_fn=lambda c: _any_path_matches(
+                (
+                    "spec.template.spec.containers.[*].image",
+                    "spec.template.spec.initContainers.[*].image",
+                ),
+                c.field_path,
             ),
             verdict_fn=lambda c: ImpactVerdict(
                 severity=Severity.WARNING,
