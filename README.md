@@ -1,3 +1,5 @@
+[![Tests](https://github.com/saurabh10041998/helm-impact/actions/workflows/test.yml/badge.svg)](https://github.com/saurabh10041998/helm-impact/actions/workflows/test.yml)
+
 # helm-impact
 helm upgrade impact analyzer plugin
 

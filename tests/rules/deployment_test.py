@@ -3,6 +3,8 @@ import pytest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from core.model import Severity
+from core.model import ImpactKind
 from core.model import FieldChange
 from core.model import ImpactVerdict
 from core.rules.deployment import _deployment_rules
@@ -67,3 +69,54 @@ def test_rules_do_not_match_wrong_resource_kind():
 
     for rule in rules:
         assert rule.matches(fc) is False
+
+
+def test_image_change_matches():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].image",
+        old_value="v1.0.0",
+        new_value="v1.1.0",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict is not None
+
+
+def test_image_change_severity_is_warning():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].image",
+        old_value="v1.0.0",
+        new_value="v1.1.0",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict.severity == Severity.WARNING
+
+
+def test_image_change_kind_is_rolling_restart():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].image",
+        old_value="v1.0.0",
+        new_value="v1.1.0",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict.kind == ImpactKind.ROLLING_RESTART
+
+
+def test_image_change_description_contains_old_and_new():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].image",
+        old_value="v1.0.0",
+        new_value="v1.1.0",
+    )
+    verdict = evaluate_one(fc)
+    assert "v1.0.0" in verdict.description
+    assert "v1.1.0" in verdict.description
+
+
+def test_image_change_init_container_matches():
+    fc = make_field_change(
+        field_path="spec.template.spec.initContainers.[*].image",
+        old_value="v1.0.0",
+        new_value="v1.1.0",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict is not None
