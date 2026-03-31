@@ -126,7 +126,90 @@ def test_image_change_digest_format_matches():
     fc = make_field_change(
         field_path="spec.template.spec.containers.[*].image",
         old_value="my-app@sha256:abc123",
-        new_value="my-app@sha256:def345"
+        new_value="my-app@sha256:def345",
     )
     verdict = evaluate_one(fc)
     verdict is not None
+
+
+def test_replica_change_matches():
+    fc = make_field_change(
+        field_path="spec.replicas",
+        old_value=2,
+        new_value=5
+    )
+    verdict = evaluate_one(fc)
+    verdict is not None
+
+
+def test_replica_scale_up_severity_is_info():
+    fc = make_field_change(
+        field_path="spec.replicas",
+        old_value=2,
+        new_value=10
+    )
+    verdict = evaluate_one(fc)
+    assert verdict.severity == Severity.INFO
+
+
+def test_replica_scale_up_kind_is_scale_event():
+    fc = make_field_change(
+        field_path="spec.replicas",
+        old_value=2,
+        new_value=10
+    )
+    verdict = evaluate_one(fc)
+    assert verdict.kind == ImpactKind.SCALE_EVENT
+
+
+def test_replica_scale_down_remediation_warns():
+    fc = make_field_change(
+        field_path="spec.replicas",
+        old_value=10,
+        new_value=2
+    )
+    remediation = evaluate_one(fc).remediation.lower()
+    assert "scale down" in remediation or "fewer" in remediation
+
+
+def test_replica_scale_up_remediation_is_benign():
+    fc = make_field_change(
+        field_path="spec.replicas",
+        old_value=2,
+        new_value=10
+    )
+    remediation = evaluate_one(fc).remediation.lower()
+    assert "scale up" in remediation or "no action" in remediation
+
+
+def test_replica_change_to_zero_matches():
+    fc = make_field_change(
+        field_path="spec.replicas",
+        old_value=3,
+        new_value=0
+    )
+    verdict = evaluate_one(fc)
+    assert verdict is not None
+    assert verdict.kind == ImpactKind.SCALE_EVENT
+
+
+def test_replica_change_description_contains_value():
+    fc = make_field_change(
+        field_path="spec.replicas",
+        old_value=2,
+        new_value=10
+    )
+    verdict = evaluate_one(fc)
+    assert "2" in verdict.description
+    assert "10" in verdict.description
+
+
+def test_replica_unrelated_spec_field_does_not_match_rule():
+    fc = make_field_change(
+        field_path="spec.replicasFoo",
+        old_value=2,
+        new_value=5
+    )
+    rules = _deployment_rules()
+    replica_rule = next(r for r in rules if r.name == 'replicas-change')
+    assert replica_rule.matches(fc) is False
