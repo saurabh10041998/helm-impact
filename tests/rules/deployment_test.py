@@ -241,7 +241,7 @@ def test_strategy_unrelated_path_does_not_match():
 
 def test_resource_limit_matches():
     fc = make_field_change(
-        field_path="spec.template.spec.containers.[*].resources.limit.memory",
+        field_path="spec.template.spec.containers.[*].resources.limits.memory",
         old_value="256Mi",
         new_value="512Mi"
     )
