@@ -268,3 +268,34 @@ def test_resource_memory_request_matches():
     )
     verdict = evaluate_one(fc)
     assert verdict is not None
+
+
+def test_resource_cpu_request_matches():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].resources.requests.cpu",
+        old_value="200m",
+        new_value="500m",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict is not None
+
+
+def test_resource_limits_serverity_is_warning():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].resources.limits.memory",
+        old_value="250Mi",
+        new_value="550Mi",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict.severity == Severity.WARNING
+
+
+def test_resource_limits_description_mentions_values():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].resources.limits.memory",
+        old_value="250Mi",
+        new_value="500Mi",
+    )
+    verdict = evaluate_one(fc)
+    assert "250mi" in verdict.description.lower()
+    assert "500mi" in verdict.description.lower()
