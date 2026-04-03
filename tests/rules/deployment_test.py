@@ -299,3 +299,21 @@ def test_resource_limits_description_mentions_values():
     verdict = evaluate_one(fc)
     assert "250mi" in verdict.description.lower()
     assert "500mi" in verdict.description.lower()
+
+
+def test_metadata_labels_does_not_match_any_rule():
+    fc = make_field_change(
+        field_path="metadata.label.test-label", old_value="v1", new_value="v2"
+    )
+    verdict = evaluate_one(fc)
+    assert verdict is None
+
+
+def test_status_change_does_not_match_any_rule():
+    fc = make_field_change(field_path="status.replicaReady", old_value=2, new_value=3)
+    assert evaluate_one(fc) is None
+
+
+def test_unknown_spec_field_does_not_match_any_rule():
+    fc = make_field_change(field_path="spec.pause", old_value=False, new_value=True)
+    assert evaluate_one(fc) is None
