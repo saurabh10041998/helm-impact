@@ -239,11 +239,32 @@ def test_strategy_unrelated_path_does_not_match():
     strategy_rule = next(rule for rule in rules if rule.name == "strategy-type-change")
     assert strategy_rule.matches(fc) is False
 
-def test_resource_limit_matches():
+
+def test_resource_limits_memory_matches():
     fc = make_field_change(
         field_path="spec.template.spec.containers.[*].resources.limits.memory",
         old_value="256Mi",
-        new_value="512Mi"
+        new_value="512Mi",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict is not None
+
+
+def test_resource_limits_cpu_matches():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].resources.limits.cpu",
+        old_value="500m",
+        new_value="1000m",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict is not None
+
+
+def test_resource_memory_request_matches():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].resources.requests.memory",
+        old_value="128Mi",
+        new_value="256Mi",
     )
     verdict = evaluate_one(fc)
     assert verdict is not None

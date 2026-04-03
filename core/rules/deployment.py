@@ -79,8 +79,14 @@ def _deployment_rules() -> list[FuncRule]:
         FuncRule(
             resource_kind="Deployment",
             name="resource-limit-change",
-            matches_fn=lambda c: _path_matches(
-                "spec.template.spec.containers.[*].resources.limits.*", c.field_path
+            matches_fn=lambda c: _any_path_matches(
+                [
+                    "spec.template.spec.containers.[*].resources.limits.*",
+                    "spec.template.spec.containers.[*].resources.requests.*",
+                    "spec.template.spec.initContainers.[*].resources.limits.*",
+                    "spec.template.spec.initContainers.[*].resources.requests.*",
+                ],
+                c.field_path,
             ),
             verdict_fn=lambda c: ImpactVerdict(
                 severity=Severity.WARNING,
