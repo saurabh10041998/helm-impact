@@ -1,7 +1,9 @@
-# Task
-- Can you change the argparse in @main.py to take the helm chart tgz file as input in to and from version 
-- Write the code to turn helm chart to one flat manifest, bail out if it fails
-- Once done then you can pass these manifest to analyzer to analyze.  
+# Done tasks (DO not perform any of these already done)
+- [x] Refactor main.py to take helm chart as arguments
 
+# Task
+- Can you update the usage instructions and prerequisites in README.md, 
+Remove the screencast.svg from the documentation. 
+- If possible add one usage example. 
 
 IMPORTANT: Do not cram code in single file. You are expert python developer which write idomatic python code. Refactor the code if you have to. Prioritze simplicity first though
