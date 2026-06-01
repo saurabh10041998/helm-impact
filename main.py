@@ -4,6 +4,7 @@ import sys
 from tools.analyzer import analyze
 from tools.chart import ChartRenderError
 from tools.chart import render_chart
+from tools.completion import generate_completion
 from tools.filters import filter_by_resource
 from tools.renderer import TableRenderer
 
@@ -18,21 +19,20 @@ def _flatten(values: list[list[str]] | None) -> list[str]:
     return [item for group in values for item in group]
 
 
-def main():
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Analyze the impact of upgrading a Helm chart"
+        prog="helm-impact",
+        description="Analyze the impact of upgrading a Helm chart",
     )
     parser.add_argument(
         "--from",
         dest="from_chart",
-        required=True,
         metavar="CHART.tgz",
         help="Path to the current (from) packaged Helm chart .tgz",
     )
     parser.add_argument(
         "--to",
         dest="to_chart",
-        required=True,
         metavar="CHART.tgz",
         help="Path to the upgraded (to) packaged Helm chart .tgz",
     )
@@ -58,7 +58,18 @@ def main():
             "(comma-separated, by kind or name; repeatable)"
         ),
     )
-    args = parser.parse_args()
+
+    commands = parser.add_subparsers(dest="command")
+    commands.add_parser(
+        "completion",
+        help="Generate a shell completion script for your platform",
+    )
+    return parser
+
+
+def _run_analysis(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+    if not args.from_chart or not args.to_chart:
+        parser.error("--from and --to are required")
 
     try:
         old_manifest_text = render_chart(args.from_chart)
@@ -73,6 +84,17 @@ def main():
         exclude=_flatten(args.hide_resource),
     )
     TableRenderer().render_report(verdicts)
+
+
+def main():
+    parser = _build_parser()
+    args = parser.parse_args()
+
+    if args.command == "completion":
+        generate_completion()
+        return
+
+    _run_analysis(parser, args)
 
 
 if __name__ == "__main__":
