@@ -20,13 +20,19 @@ This installs the `helm-impact` console script.
 
 # usage
 ```bash
-helm-impact --from <current-chart.tgz> --to <upgraded-chart.tgz>
+helm-impact --from <current-chart.tgz> --to <upgraded-chart.tgz> [filter]
 ```
 
-| Option   | Description                                        |
-| -------- | -------------------------------------------------- |
-| `--from` | Path to the current (from) packaged Helm chart .tgz |
-| `--to`   | Path to the upgraded (to) packaged Helm chart .tgz  |
+| Option            | Description                                                                    |
+| ----------------- | ----------------------------------------------------------------------------- |
+| `--from`          | Path to the current (from) packaged Helm chart .tgz                            |
+| `--to`            | Path to the upgraded (to) packaged Helm chart .tgz                             |
+| `--resource`      | Only show impact for these resources (comma-separated, by kind or name)        |
+| `--hide-resource` | Hide impact for these resources (comma-separated, by kind or name)            |
+
+`--resource` and `--hide-resource` are mutually exclusive. Both accept a
+comma-separated list and can be repeated; values match either the resource
+**kind** (e.g. `Deployment`) or its **name** (e.g. `my-app`).
 
 ## example
 ```bash
@@ -35,6 +41,22 @@ helm package ./myapp --version 1.0.0 -d ./charts
 helm package ./myapp --version 1.1.0 -d ./charts
 
 helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz
+
+# only show impact for Deployments and StatefulSets
+helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz \
+  --resource Deployment,StatefulSet
+
+# show everything except PersistentVolumeClaim changes
+helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz \
+  --hide-resource PersistentVolumeClaim
+```
+
+# shell completion
+Generate a completion script for your shell. The platform is detected
+automatically — **bash** on Linux, **zsh** on macOS — and the command prints
+instructions on how to source it.
+```bash
+helm-impact completion
 ```
 
 # project structure
@@ -65,6 +87,8 @@ helm-impact
     ├── __init__.py
     ├── analyzer.py              # main analyzer
     ├── chart.py                 # renders helm chart .tgz into a flat manifest
+    ├── completion.py            # generates bash/zsh shell completion scripts
+    ├── filters.py               # filters verdicts by resource kind/name
     └── renderer.py              # various report renders
 
 ```
