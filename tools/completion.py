@@ -65,10 +65,10 @@ _helm_impact_completion() {
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     local commands="completion"
-    local opts="--from --to --resource --hide-resource --help"
+    local opts="--from --to --from-values --to-values --resource --hide-resource --help"
 
     case "$prev" in
-        --from|--to)
+        --from|--to|--from-values|--to-values)
             COMPREPLY=( $(compgen -f -- "$cur") )
             return 0
             ;;
@@ -88,6 +88,8 @@ _helm_impact() {
     _arguments \\
         '--from[Path to the current (from) chart .tgz]:file:_files' \\
         '--to[Path to the upgraded (to) chart .tgz]:file:_files' \\
+        '--from-values[Override values file for the from chart]:file:_files' \\
+        '--to-values[Override values file for the to chart]:file:_files' \\
         '--resource[Only show impact for these resources]:resource:' \\
         '--hide-resource[Hide impact for these resources]:resource:' \\
         '--help[Show help]' \\

@@ -36,6 +36,26 @@ def _build_parser() -> argparse.ArgumentParser:
         metavar="CHART.tgz",
         help="Path to the upgraded (to) packaged Helm chart .tgz",
     )
+    parser.add_argument(
+        "--from-values",
+        dest="from_values",
+        action="append",
+        metavar="VALUES.yaml",
+        help=(
+            "Override values file for the from chart "
+            "(passed to helm template as -f; repeatable, later files win)"
+        ),
+    )
+    parser.add_argument(
+        "--to-values",
+        dest="to_values",
+        action="append",
+        metavar="VALUES.yaml",
+        help=(
+            "Override values file for the to chart "
+            "(passed to helm template as -f; repeatable, later files win)"
+        ),
+    )
     resource_filter = parser.add_mutually_exclusive_group()
     resource_filter.add_argument(
         "--resource",
@@ -72,8 +92,10 @@ def _run_analysis(parser: argparse.ArgumentParser, args: argparse.Namespace) -> 
         parser.error("--from and --to are required")
 
     try:
-        old_manifest_text = render_chart(args.from_chart)
-        new_manifest_text = render_chart(args.to_chart)
+        old_manifest_text = render_chart(
+            args.from_chart, values_files=args.from_values
+        )
+        new_manifest_text = render_chart(args.to_chart, values_files=args.to_values)
     except ChartRenderError as exc:
         sys.exit(f"error: {exc}")
 
