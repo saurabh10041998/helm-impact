@@ -27,12 +27,31 @@ helm-impact --from <current-chart.tgz> --to <upgraded-chart.tgz> [filter]
 | ----------------- | ----------------------------------------------------------------------------- |
 | `--from`          | Path to the current (from) packaged Helm chart .tgz                            |
 | `--to`            | Path to the upgraded (to) packaged Helm chart .tgz                             |
+| `--from-values`   | Override values file for the `--from` chart (repeatable)                       |
+| `--to-values`     | Override values file for the `--to` chart (repeatable)                         |
 | `--resource`      | Only show impact for these resources (comma-separated, by kind or name)        |
 | `--hide-resource` | Hide impact for these resources (comma-separated, by kind or name)            |
 
 `--resource` and `--hide-resource` are mutually exclusive. Both accept a
 comma-separated list and can be repeated; values match either the resource
 **kind** (e.g. `Deployment`) or its **name** (e.g. `my-app`).
+
+## value overrides
+Some charts require values to be supplied before they can render (e.g. a
+`Required value "xyz" is missing from the config` error). Pass an override
+values file with `--from-values` / `--to-values` — these are forwarded to
+`helm template` as `-f` flags, exactly like a normal `helm` invocation. Both
+flags are repeatable, and when given multiple files later files win:
+```bash
+# render each side with its own overrides
+helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz \
+  --from-values ./values/old.yaml \
+  --to-values ./values/new.yaml
+
+# layer multiple overrides on a single side (base first, then env-specific)
+helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz \
+  --to-values ./values/base.yaml --to-values ./values/prod.yaml
+```
 
 ## example
 ```bash
