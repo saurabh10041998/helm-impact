@@ -36,23 +36,6 @@ helm-impact --from <current-chart.tgz> --to <upgraded-chart.tgz> [filter]
 comma-separated list and can be repeated; values match either the resource
 **kind** (e.g. `Deployment`) or its **name** (e.g. `my-app`).
 
-## value overrides
-Some charts require values to be supplied before they can render (e.g. a
-`Required value "xyz" is missing from the config` error). Pass an override
-values file with `--from-values` / `--to-values` — these are forwarded to
-`helm template` as `-f` flags, exactly like a normal `helm` invocation. Both
-flags are repeatable, and when given multiple files later files win:
-```bash
-# render each side with its own overrides
-helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz \
-  --from-values ./values/old.yaml \
-  --to-values ./values/new.yaml
-
-# layer multiple overrides on a single side (base first, then env-specific)
-helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz \
-  --to-values ./values/base.yaml --to-values ./values/prod.yaml
-```
-
 ## example
 ```bash
 # package the chart at two revisions, then compare them
@@ -68,6 +51,23 @@ helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz \
 # show everything except PersistentVolumeClaim changes
 helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz \
   --hide-resource PersistentVolumeClaim
+```
+
+## value overrides
+Some charts require values to be supplied before they can render (e.g. a
+`Required value "xyz" is missing from the config` error). Pass an override
+values file with `--from-values` / `--to-values` — these are forwarded to
+`helm template` as `-f` flags, exactly like a normal `helm` invocation. Both
+flags are repeatable, and when given multiple files later files win:
+```bash
+# render each side with its own overrides
+helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz \
+  --from-values ./values/old.yaml \
+  --to-values ./values/new.yaml
+
+# layer multiple overrides on a single side (base first, then env-specific)
+helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz \
+  --to-values ./values/base.yaml --to-values ./values/prod.yaml
 ```
 
 # shell completion
