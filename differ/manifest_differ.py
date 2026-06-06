@@ -87,6 +87,8 @@ def _is_noise(path: str) -> bool:
     noise_prefixes = [
         "metadata.annotations.kubectl.kubernetes.io/last-applied",
         "metadata.annotations.deployment.kubernetes.io/revision",
+        "metadata.labels.app.kubernetes.io/version",
+        "metadata.labels.helm.sh/chart",
         "metadata.resourceVersion",
         "metadata.uid",
         "status.",
