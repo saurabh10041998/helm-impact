@@ -93,4 +93,8 @@ def _is_noise(path: str) -> bool:
         "metadata.uid",
         "status.",
     ]
-    return any(path.startswith(prefix) for prefix in noise_prefixes)
+
+    all_prefixes = noise_prefixes + [
+        "spec.template." + prefix for prefix in noise_prefixes
+    ]
+    return any(path.startswith(prefix) for prefix in all_prefixes)
