@@ -82,32 +82,38 @@ helm-impact completion
 ```bash
 helm-impact
 ├── core
-│   ├── __init__.py
-│   ├── model.py                 # core data structure to denote change and its verdict
-│   └── rules
-│       ├── __init__.py
-│       ├── base.py              # basic rule definition
-│       ├── engine.py            #  houses rule engine
-│       ├── registry.py          #  rules registry
-│       ├── pvc.py               #  verdict rules for pvc  change
-│       ├── statefulset.py       #  verdict rules for statefulset change
-│       └── deployment.py        #  verdict rules for deployment change
+│   ├── __init__.py
+│   ├── model.py                 # core data structure to denote change and its verdict
+│   └── rules
+│       ├── __init__.py
+│       ├── base.py              # basic rule definition
+│       ├── engine.py            # houses rule engine
+│       ├── registry.py          # rules registry
+│       ├── deployment.py        # verdict rules for deployment change
+│       ├── statefulset.py       # verdict rules for statefulset change
+│       ├── pvc.py               # verdict rules for pvc change
+│       ├── secret.py            # verdict rules for secret change
+│       ├── serviceaccount.py    # verdict rules for serviceaccount change
+│       ├── role.py              # verdict rules for role change
+│       ├── rolebinding.py       # verdict rules for rolebinding change
+│       └── poddisruptionbudget.py  # verdict rules for poddisruptionbudget change
 ├── differ
-│   ├── __init__.py
-│   ├── manifest_differ.py       # manifest diff calculator
-│   └── utils.py                 # helper utils for diff calculation
+│   ├── __init__.py
+│   ├── manifest_differ.py       # manifest diff calculator
+│   └── utils.py                 # helper utils for diff calculation
+├── tools
+│   ├── __init__.py
+│   ├── analyzer.py              # main analyzer
+│   ├── chart.py                 # renders helm chart .tgz into a flat manifest
+│   ├── completion.py            # generates bash/zsh shell completion scripts
+│   ├── filters.py               # filters verdicts by resource kind/name
+│   └── renderer.py              # various report renders
+├── tests                        # pytest suite (non-source; mirrors layout above)
 ├── LICENSE
-├── main.py                      # entry points
+├── main.py                      # entry point
 ├── Makefile
 ├── README.md
+├── spec.md                      # project specification
 ├── setup.cfg
-├── setup.py
-└── tools
-    ├── __init__.py
-    ├── analyzer.py              # main analyzer
-    ├── chart.py                 # renders helm chart .tgz into a flat manifest
-    ├── completion.py            # generates bash/zsh shell completion scripts
-    ├── filters.py               # filters verdicts by resource kind/name
-    └── renderer.py              # various report renders
-
+└── setup.py
 ```
