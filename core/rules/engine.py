@@ -12,6 +12,10 @@ class RuleEngine:
     def register(self, rule: Rule) -> None:
         self._rules.append(rule)
 
+    def resource_kinds(self) -> list[str]:
+        kinds = {rule.resource_kind for rule in self._rules if rule.resource_kind}
+        return sorted(kinds)
+
     def evaluate(self, change: FieldChange) -> ImpactVerdict:
         for rule in self._rules:
             if rule.matches(change):
@@ -22,8 +26,7 @@ class RuleEngine:
             severity=Severity.WARNING,
             kind=ImpactKind.UNCLEAR,
             description=(
-                f"No rule matched for {change.resource_kind} "
-                f"{change.field_path}"
+                f"No rule matched for {change.resource_kind} " f"{change.field_path}"
             ),
             remediation="Review Mannually",
             field_change=change,
