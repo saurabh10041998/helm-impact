@@ -90,8 +90,8 @@ def test_rule_subclass_matches_returns_correct_value():
             return make_verdict(change)
 
     rule = ConcreteRule()
-    assert rule.matches(make_field_change(field_path="spec.replicas")) == True
-    assert rule.matches(make_field_change(field_path="spec.image")) == False
+    assert rule.matches(make_field_change(field_path="spec.replicas")) is True
+    assert rule.matches(make_field_change(field_path="spec.image")) is False
 
 
 def test_rule_subclass_verdict_returns_impact_verdict():
@@ -185,8 +185,8 @@ def test_funcrule_matches_correct_resource_kind():
         matches_fn=alway_match,
         verdict_fn=simple_verdict,
     )
-    assert rule.matches(make_field_change(resource_kind="Deployment")) == True
-    assert rule.matches(make_field_change(resource_kind="Service")) == False
+    assert rule.matches(make_field_change(resource_kind="Deployment")) is True
+    assert rule.matches(make_field_change(resource_kind="Service")) is False
 
 
 def test_funcrule_none_resource_kind_mactches_any_kind():
@@ -195,9 +195,9 @@ def test_funcrule_none_resource_kind_mactches_any_kind():
         matches_fn=alway_match,
         verdict_fn=simple_verdict,
     )
-    assert rule.matches(make_field_change(resource_kind="Deployment")) == True
-    assert rule.matches(make_field_change(resource_kind="Service")) == True
-    assert rule.matches(make_field_change(resource_kind="ConfigMap")) == True
+    assert rule.matches(make_field_change(resource_kind="Deployment")) is True
+    assert rule.matches(make_field_change(resource_kind="Service")) is True
+    assert rule.matches(make_field_change(resource_kind="ConfigMap")) is True
 
 
 def test_funcrule_resource_kind_check_is_case_sensitive():
@@ -206,8 +206,8 @@ def test_funcrule_resource_kind_check_is_case_sensitive():
         matches_fn=alway_match,
         verdict_fn=simple_verdict,
     )
-    assert rule.matches(make_field_change(resource_kind="deployment")) == False
-    assert rule.matches(make_field_change(resource_kind="DEPLOYMENT")) == False
+    assert rule.matches(make_field_change(resource_kind="deployment")) is False
+    assert rule.matches(make_field_change(resource_kind="DEPLOYMENT")) is False
 
 
 def test_funcrule_matches_fn_returning_false_does_not_match():
@@ -216,7 +216,7 @@ def test_funcrule_matches_fn_returning_false_does_not_match():
         matches_fn=never_match,
         verdict_fn=simple_verdict,
     )
-    assert rule.matches(make_field_change()) == False
+    assert rule.matches(make_field_change()) is False
 
 
 def test_funcrule_resource_kind_mismatch_short_circuits_matches_fn():
@@ -231,7 +231,7 @@ def test_funcrule_resource_kind_mismatch_short_circuits_matches_fn():
         matches_fn=tracking_match,
         verdict_fn=simple_verdict,
     )
-    assert rule.matches(make_field_change(resource_kind="Service")) == False
+    assert rule.matches(make_field_change(resource_kind="Service")) is False
     assert called == []
 
 
@@ -248,7 +248,7 @@ def test_funcrule_matches_fn_received_field_change():
         verdict_fn=simple_verdict,
     )
     fc = make_field_change()
-    assert rule.matches(fc) == True
+    assert rule.matches(fc) is True
     assert received[0] is fc
 
 
@@ -258,8 +258,8 @@ def test_funcrule_matches_fn_on_field_path():
         matches_fn=lambda fc: fc.field_path == "spec.replicas",
         verdict_fn=simple_verdict,
     )
-    assert rule.matches(make_field_change(field_path="spec.replicas")) == True
-    assert rule.matches(make_field_change(field_path="spec.image")) == False
+    assert rule.matches(make_field_change(field_path="spec.replicas")) is True
+    assert rule.matches(make_field_change(field_path="spec.image")) is False
 
 
 def test_funcrule_match_fn_on_value_change():
@@ -268,8 +268,8 @@ def test_funcrule_match_fn_on_value_change():
         matches_fn=lambda fc: fc.new_value == "Recreate",
         verdict_fn=simple_verdict,
     )
-    assert rule.matches(make_field_change(new_value="Recreate")) == True
-    assert rule.matches(make_field_change(new_value="RollingUpdate")) == False
+    assert rule.matches(make_field_change(new_value="Recreate")) is True
+    assert rule.matches(make_field_change(new_value="RollingUpdate")) is False
 
 
 def test_funcrule_verdict_returns_impact_verdict():
@@ -292,7 +292,7 @@ def test_funcrule_verdict_fn_receives_field_change():
     rule = FuncRule(
         resource_kind="Deployment", matches_fn=alway_match, verdict_fn=capturing_verdict
     )
-    result = rule.verdict(fc)
+    rule.verdict(fc)
     assert received[0] is fc
 
 
@@ -364,8 +364,8 @@ def test_funcrule_matches_fn_with_none_old_value():
         matches_fn=lambda c: c.old_value is None,
         verdict_fn=simple_verdict,
     )
-    assert rule.matches(make_field_change(old_value=None)) == True
-    assert rule.matches(make_field_change(old_value="DROP_ALL")) == False
+    assert rule.matches(make_field_change(old_value=None)) is True
+    assert rule.matches(make_field_change(old_value="DROP_ALL")) is False
 
 
 def test_funcrule_matches_fn_with_zero_value():
@@ -374,16 +374,16 @@ def test_funcrule_matches_fn_with_zero_value():
         matches_fn=lambda c: c.new_value == 0,
         verdict_fn=simple_verdict,
     )
-    assert rule.matches(make_field_change(old_value=None, new_value=0)) == True
+    assert rule.matches(make_field_change(old_value=None, new_value=0)) is True
 
 
 def test_funcrule_matches_fn_with_boolean_value():
     rule = FuncRule(
         resource_kind="Deployment",
-        matches_fn=lambda c: c.new_value == False,
+        matches_fn=lambda c: c.new_value is False,
         verdict_fn=simple_verdict,
     )
-    assert rule.matches(make_field_change(old_value=True, new_value=False)) == True
+    assert rule.matches(make_field_change(old_value=True, new_value=False)) is True
 
 
 def test_funcrule_multiple_rules_same_resource_kind():

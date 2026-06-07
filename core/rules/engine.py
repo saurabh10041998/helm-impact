@@ -21,7 +21,10 @@ class RuleEngine:
         return ImpactVerdict(
             severity=Severity.WARNING,
             kind=ImpactKind.UNCLEAR,
-            description=f"No rule matched for {change.resource_kind} {change.field_path}",
+            description=(
+                f"No rule matched for {change.resource_kind} "
+                f"{change.field_path}"
+            ),
             remediation="Review Mannually",
             field_change=change,
         )

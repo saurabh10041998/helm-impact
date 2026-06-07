@@ -44,9 +44,10 @@ def _storage_verdict(c: FieldChange) -> ImpactVerdict:
             kind=ImpactKind.MANNUAL_INTERVENTION,
             description=f"Expanding PVC storage from {c.old_value} to {c.new_value}",
             remediation=(
-                "PVC expansion may require manual intervention and can lead to downtime. "
-                "Ensure that the underlying storage class supports expansion and that the "
-                "application can handle the increased storage size without issues."
+                "PVC expansion may require manual intervention and can lead "
+                "to downtime. Ensure that the underlying storage class "
+                "supports expansion and that the application can handle the "
+                "increased storage size without issues."
             ),
             field_change=c,
         )
