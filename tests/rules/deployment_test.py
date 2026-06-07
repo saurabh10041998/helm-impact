@@ -161,11 +161,12 @@ def test_replica_scale_up_remediation_is_benign():
     assert "scale up" in remediation or "no action" in remediation
 
 
-def test_replica_change_to_zero_matches():
+def test_replica_change_to_zero_is_downtime():
     fc = make_field_change(field_path="spec.replicas", old_value=3, new_value=0)
     verdict = evaluate_one(fc)
     assert verdict is not None
-    assert verdict.kind == ImpactKind.SCALE_EVENT
+    assert verdict.severity == Severity.DANGER
+    assert verdict.kind == ImpactKind.DOWNTIME
 
 
 def test_replica_change_description_contains_value():
@@ -300,19 +301,155 @@ def test_resource_limits_description_mentions_values():
     assert "500mi" in verdict.description.lower()
 
 
-def test_metadata_labels_does_not_match_any_rule():
+def test_selector_change_is_danger_manual():
     fc = make_field_change(
-        field_path="metadata.label.test-label", old_value="v1", new_value="v2"
+        field_path="spec.selector.matchLabels.app",
+        old_value="old",
+        new_value="new",
     )
     verdict = evaluate_one(fc)
-    assert verdict is None
+    assert verdict.severity == Severity.DANGER
+    assert verdict.kind == ImpactKind.MANNUAL_INTERVENTION
 
 
-def test_status_change_does_not_match_any_rule():
+def test_selector_change_remediation_mentions_immutable():
+    fc = make_field_change(
+        field_path="spec.selector.matchLabels.app",
+        old_value="old",
+        new_value="new",
+    )
+    assert "immutable" in evaluate_one(fc).remediation.lower()
+
+
+def test_env_change_is_warning_restart():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].env.[*].value",
+        old_value="a",
+        new_value="b",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict.severity == Severity.WARNING
+    assert verdict.kind == ImpactKind.ROLLING_RESTART
+
+
+def test_env_from_change_matches():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].envFrom.[*].configMapRef.name",
+        old_value="cm-a",
+        new_value="cm-b",
+    )
+    assert evaluate_one(fc).kind == ImpactKind.ROLLING_RESTART
+
+
+def test_probe_change_is_warning_restart():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].readinessProbe.periodSeconds",
+        old_value=10,
+        new_value=5,
+    )
+    verdict = evaluate_one(fc)
+    assert verdict.severity == Severity.WARNING
+    assert verdict.kind == ImpactKind.ROLLING_RESTART
+
+
+def test_command_args_change_is_warning_restart():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].args.[*]",
+        old_value="--debug",
+        new_value="--verbose",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict.severity == Severity.WARNING
+    assert verdict.kind == ImpactKind.ROLLING_RESTART
+
+
+def test_volume_change_is_warning_restart():
+    fc = make_field_change(
+        field_path="spec.template.spec.volumes.[*].configMap.name",
+        old_value="cm-a",
+        new_value="cm-b",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict.severity == Severity.WARNING
+    assert verdict.kind == ImpactKind.ROLLING_RESTART
+
+
+def test_volume_mount_change_matches():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].volumeMounts.[*].mountPath",
+        old_value="/data",
+        new_value="/srv",
+    )
+    assert evaluate_one(fc).kind == ImpactKind.ROLLING_RESTART
+
+
+def test_port_change_is_warning_restart():
+    fc = make_field_change(
+        field_path="spec.template.spec.containers.[*].ports.[*].containerPort",
+        old_value=8080,
+        new_value=9090,
+    )
+    verdict = evaluate_one(fc)
+    assert verdict.severity == Severity.WARNING
+    assert verdict.kind == ImpactKind.ROLLING_RESTART
+
+
+def test_service_account_change_is_warning_restart():
+    fc = make_field_change(
+        field_path="spec.template.spec.serviceAccountName",
+        old_value="default",
+        new_value="app-sa",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict.severity == Severity.WARNING
+    assert verdict.kind == ImpactKind.ROLLING_RESTART
+
+
+def test_strategy_rolling_params_max_unavailable_matches():
+    fc = make_field_change(
+        field_path="spec.strategy.rollingUpdate.maxUnavailable",
+        old_value="25%",
+        new_value="50%",
+    )
+    verdict = evaluate_one(fc)
+    assert verdict.severity == Severity.WARNING
+    assert verdict.kind == ImpactKind.ROLLING_RESTART
+
+
+def test_strategy_rolling_params_max_surge_matches():
+    fc = make_field_change(
+        field_path="spec.strategy.rollingUpdate.maxSurge",
+        old_value=1,
+        new_value=2,
+    )
+    assert evaluate_one(fc).kind == ImpactKind.ROLLING_RESTART
+
+
+# --- fallback ---
+
+
+def test_metadata_change_hits_fallback():
+    fc = make_field_change(
+        field_path="metadata.labels.team", old_value="a", new_value="b"
+    )
+    assert evaluate_one(fc).kind == ImpactKind.UNCLEAR
+
+
+def test_status_change_hits_fallback():
     fc = make_field_change(field_path="status.replicaReady", old_value=2, new_value=3)
-    assert evaluate_one(fc) is None
+    verdict = evaluate_one(fc)
+    assert verdict.severity == Severity.INFO
+    assert verdict.kind == ImpactKind.UNCLEAR
 
 
-def test_unknown_spec_field_does_not_match_any_rule():
-    fc = make_field_change(field_path="spec.pause", old_value=False, new_value=True)
-    assert evaluate_one(fc) is None
+def test_unknown_spec_field_hits_fallback():
+    fc = make_field_change(field_path="spec.paused", old_value=False, new_value=True)
+    verdict = evaluate_one(fc)
+    assert verdict is not None
+    assert verdict.severity == Severity.INFO
+    assert verdict.kind == ImpactKind.UNCLEAR
+
+
+def test_fallback_rule_is_last():
+    rules = _deployment_rules()
+    assert rules[-1].name == "fallback"
