@@ -23,7 +23,7 @@ jobs:
       run: |
         sudo apt-get update
         python -m pip install --upgrade pip
-        pip install pytest pyyaml flake8
+        pip install pytest pyyaml flake8 rich
 
     - name: Run flake8
       run: |
