@@ -34,7 +34,7 @@ def _deployment_rules() -> list[FuncRule]:
                 kind=ImpactKind.ROLLING_RESTART,
                 description=(
                     f"Changing container image from {c.old_value} "
-                    f"to {c.new_value}t"
+                    f"to {c.new_value}"
                 ),
                 remediation=(
                     "This will trigger a rolling restart. Ensure that the new "
