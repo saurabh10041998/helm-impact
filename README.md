@@ -29,12 +29,12 @@ helm-impact --from <current-chart.tgz> --to <upgraded-chart.tgz> [filter]
 | `--to`            | Path to the upgraded (to) packaged Helm chart .tgz                             |
 | `--from-values`   | Override values file for the `--from` chart (repeatable)                       |
 | `--to-values`     | Override values file for the `--to` chart (repeatable)                         |
-| `--resource`      | Only show impact for these resources (comma-separated, by kind or name)        |
-| `--hide-resource` | Hide impact for these resources (comma-separated, by kind or name)            |
+| `--resource`      | Only show impact for this resource (by kind or name; repeatable)               |
+| `--hide-resource` | Hide impact for this resource (by kind or name; repeatable)                    |
 
-`--resource` and `--hide-resource` are mutually exclusive. Both accept a
-comma-separated list and can be repeated; values match either the resource
-**kind** (e.g. `Deployment`) or its **name** (e.g. `my-app`).
+`--resource` and `--hide-resource` are mutually exclusive. Repeat the flag to
+pass several resources; values match either the resource **kind** (e.g.
+`Deployment`) or its **name** (e.g. `my-app`).
 
 ## example
 ```bash
@@ -46,7 +46,7 @@ helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz
 
 # only show impact for Deployments and StatefulSets
 helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz \
-  --resource Deployment,StatefulSet
+  --resource Deployment --resource StatefulSet
 
 # show everything except PersistentVolumeClaim changes
 helm-impact --from ./charts/myapp-1.0.0.tgz --to ./charts/myapp-1.1.0.tgz \
