@@ -5,8 +5,8 @@ from typing import Any, Iterator
 
 def load_manifests(yaml_text: str) -> list[dict]:
     """
-    A single helm template output may contain multiple YAML documents separated by '---'.
-    Parse them all
+    A single helm template output may contain multiple YAML documents
+    separated by '---'. Parse them all
     """
     docs = yaml.safe_load_all(yaml_text)
     return [doc for doc in docs if doc is not None]
@@ -29,7 +29,8 @@ def flatten(obj: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
     Recursively walk a nested dict/list and yield (dotted_path, leaf_value)
     Examples:
         {"spec":{"replicas": 3}} -> ("spec.replicas", 3)
-        {"spec":{"template":{"spec":{"containers":[{"image":"nginx"}]}}}} -> ("spec.template.spec.containers.[0].image", "nginx")
+        {"spec":{"template":{"spec":{"containers":[{"image":"nginx"}]}}}}
+            -> ("spec.template.spec.containers.[0].image", "nginx")
     """
     if isinstance(obj, dict):
         for k, v in obj.items():
@@ -45,7 +46,8 @@ def flatten(obj: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
 
 def normalize_index(path: str) -> str:
     """
-    Convert "spec.template.spec.containers.[0].image" to "spec.template.spec.containers.[*].image"
+    Convert "spec.template.spec.containers.[0].image" to
+    "spec.template.spec.containers.[*].image"
     This allows rules to match any index in a list
     """
     return re.sub(r"\.\[\d+\]", ".[*]", path)

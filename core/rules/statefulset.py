@@ -32,7 +32,10 @@ def _statefulset_rules() -> list[FuncRule]:
             verdict_fn=lambda c: ImpactVerdict(
                 severity=Severity.WARNING,
                 kind=ImpactKind.ROLLING_RESTART,
-                description=f"Changing container image from {c.old_value} to {c.new_value}",
+                description=(
+                    f"Changing container image from {c.old_value} "
+                    f"to {c.new_value}"
+                ),
                 remediation=(
                     "This will trigger a rolling restart of the statefulset (governed "
                     "by updateStrategy). Ensure the new image is compatible and tested."
@@ -84,7 +87,10 @@ def _statefulset_rules() -> list[FuncRule]:
             verdict_fn=lambda c: ImpactVerdict(
                 severity=Severity.DANGER,
                 kind=ImpactKind.MANNUAL_INTERVENTION,
-                description=f"selector changed at {c.field_path}: {c.old_value} -> {c.new_value}",
+                description=(
+                    f"selector changed at {c.field_path}: "
+                    f"{c.old_value} -> {c.new_value}"
+                ),
                 remediation=(
                     "spec.selector is immutable -- the apply will be rejected. "
                     "Delete and recreate the StatefulSet to change it."
@@ -103,8 +109,9 @@ def _statefulset_rules() -> list[FuncRule]:
                     f"podManagementPolicy changed from {c.old_value} to {c.new_value}"
                 ),
                 remediation=(
-                    "spec.podManagementPolicy is immutable post-creation -- the apply "
-                    "will be rejected. Delete and recreate the StatefulSet to change it."
+                    "spec.podManagementPolicy is immutable post-creation -- "
+                    "the apply will be rejected. Delete and recreate the "
+                    "StatefulSet to change it."
                 ),
                 field_change=c,
             ),
@@ -167,7 +174,10 @@ def _statefulset_rules() -> list[FuncRule]:
             verdict_fn=lambda c: ImpactVerdict(
                 severity=Severity.WARNING,
                 kind=ImpactKind.ROLLING_RESTART,
-                description=f"Container resource {c.field_path.split('.')[-1]} limit changed from {c.old_value} to {c.new_value}",
+                description=(
+                    f"Container resource {c.field_path.split('.')[-1]} limit "
+                    f"changed from {c.old_value} to {c.new_value}"
+                ),
                 remediation=(
                     "Rolling restart -- ensure new limits are within node capacity."
                 ),
@@ -181,7 +191,10 @@ def _statefulset_rules() -> list[FuncRule]:
             verdict_fn=lambda c: ImpactVerdict(
                 severity=Severity.INFO,
                 kind=ImpactKind.UNCLEAR,
-                description=f"Unclassified StatefulSet change at {c.field_path}: {c.old_value} -> {c.new_value}",
+                description=(
+                    f"Unclassified StatefulSet change at {c.field_path}: "
+                    f"{c.old_value} -> {c.new_value}"
+                ),
                 remediation=(
                     "No specific rule matched -- review this change manually to "
                     "confirm it is safe."

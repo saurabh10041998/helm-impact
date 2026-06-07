@@ -3,7 +3,6 @@ import re
 from core.model import ImpactVerdict
 from core.model import Severity
 from core.model import ImpactKind
-from core.model import ImpactKind
 
 from core.rules.base import FuncRule
 
@@ -33,8 +32,14 @@ def _deployment_rules() -> list[FuncRule]:
             verdict_fn=lambda c: ImpactVerdict(
                 severity=Severity.WARNING,
                 kind=ImpactKind.ROLLING_RESTART,
-                description=f"Changing container image from {c.old_value} to {c.new_value}t",
-                remediation="This will trigger a rolling restart. Ensure that the new image is compatible and has been tested.",
+                description=(
+                    f"Changing container image from {c.old_value} "
+                    f"to {c.new_value}t"
+                ),
+                remediation=(
+                    "This will trigger a rolling restart. Ensure that the new "
+                    "image is compatible and has been tested."
+                ),
                 field_change=c,
             ),
         ),
@@ -67,11 +72,16 @@ def _deployment_rules() -> list[FuncRule]:
                     if c.new_value == "Recreate"
                     else ImpactKind.ROLLING_RESTART
                 ),
-                description=f"Deployment strategy changed from {c.old_value} to {c.new_value}",
+                description=(
+                    f"Deployment strategy changed from {c.old_value} "
+                    f"to {c.new_value}"
+                ),
                 remediation=(
-                    "Recreate strategy will cause downtime -- revert to Rollingupdate or ensure downtime is acceptable."
+                    "Recreate strategy will cause downtime -- revert to "
+                    "Rollingupdate or ensure downtime is acceptable."
                     if c.new_value == "Recreate"
-                    else "Strategy change will trigger a rolling restart -- ensure strategy is appropriate"
+                    else "Strategy change will trigger a rolling restart -- "
+                    "ensure strategy is appropriate"
                 ),
                 field_change=c,
             ),
@@ -91,7 +101,10 @@ def _deployment_rules() -> list[FuncRule]:
             verdict_fn=lambda c: ImpactVerdict(
                 severity=Severity.WARNING,
                 kind=ImpactKind.ROLLING_RESTART,
-                description=f"Container resource {c.field_path.split('.')[-1]} limit changed from {c.old_value} to {c.new_value}",
+                description=(
+                    f"Container resource {c.field_path.split('.')[-1]} limit "
+                    f"changed from {c.old_value} to {c.new_value}"
+                ),
                 remediation=(
                     "Rolling restart -- ensure new limits are within node capacity"
                 ),
