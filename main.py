@@ -9,16 +9,6 @@ from tools.filters import filter_by_resource
 from tools.renderer import TableRenderer
 
 
-def _csv(value: str) -> list[str]:
-    return [item.strip() for item in value.split(",") if item.strip()]
-
-
-def _flatten(values: list[list[str]] | None) -> list[str]:
-    if not values:
-        return []
-    return [item for group in values for item in group]
-
-
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="helm-impact",
@@ -59,23 +49,23 @@ def _build_parser() -> argparse.ArgumentParser:
     resource_filter = parser.add_mutually_exclusive_group()
     resource_filter.add_argument(
         "--resource",
-        type=_csv,
         action="append",
         metavar="KIND_OR_NAME",
         help=(
-            "Only show impact for these resources "
-            "(comma-separated, by kind or name; repeatable)"
+            "Only show impact for this resource (by kind or name; "
+            "repeat the flag to pass several, e.g. "
+            "--resource Deployment --resource StatefulSet)"
         ),
     )
     resource_filter.add_argument(
         "--hide-resource",
         dest="hide_resource",
-        type=_csv,
         action="append",
         metavar="KIND_OR_NAME",
         help=(
-            "Hide impact for these resources "
-            "(comma-separated, by kind or name; repeatable)"
+            "Hide impact for this resource (by kind or name; "
+            "repeat the flag to pass several, e.g. "
+            "--hide-resource Secret --hide-resource Role)"
         ),
     )
 
@@ -92,9 +82,7 @@ def _run_analysis(parser: argparse.ArgumentParser, args: argparse.Namespace) -> 
         parser.error("--from and --to are required")
 
     try:
-        old_manifest_text = render_chart(
-            args.from_chart, values_files=args.from_values
-        )
+        old_manifest_text = render_chart(args.from_chart, values_files=args.from_values)
         new_manifest_text = render_chart(args.to_chart, values_files=args.to_values)
     except ChartRenderError as exc:
         sys.exit(f"error: {exc}")
@@ -102,8 +90,8 @@ def _run_analysis(parser: argparse.ArgumentParser, args: argparse.Namespace) -> 
     verdicts = analyze(old_manifest_text, new_manifest_text)
     verdicts = filter_by_resource(
         verdicts,
-        include=_flatten(args.resource),
-        exclude=_flatten(args.hide_resource),
+        include=args.resource or [],
+        exclude=args.hide_resource or [],
     )
     TableRenderer().render_report(verdicts)
 

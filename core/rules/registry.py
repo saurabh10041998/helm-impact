@@ -28,3 +28,8 @@ def build_engine() -> RuleEngine:
     for rule in _rolebinding_rules():
         engine.register(rule)
     return engine
+
+
+def supported_resource_kinds() -> list[str]:
+    """Resource kinds that have at least one rule implemented, sorted."""
+    return build_engine().resource_kinds()

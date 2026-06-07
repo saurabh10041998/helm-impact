@@ -6,6 +6,8 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
 
+from core.rules.registry import supported_resource_kinds
+
 PROG = "helm-impact"
 _COMPLETION_DIR = Path.home() / ".helm-impact"
 
@@ -57,44 +59,51 @@ def _install(shell: str, script: str, rc_file: str, console: Console) -> None:
 
 
 def _bash_script() -> str:
-    return """\
+    kinds = " ".join(supported_resource_kinds())
+    return f"""\
 # bash completion for helm-impact
-_helm_impact_completion() {
+_helm_impact_completion() {{
     local cur prev
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    cur="${{COMP_WORDS[COMP_CWORD]}}"
+    prev="${{COMP_WORDS[COMP_CWORD-1]}}"
 
     local commands="completion"
     local opts="--from --to --from-values --to-values --resource --hide-resource --help"
+    local resource_kinds="{kinds}"
 
     case "$prev" in
         --from|--to|--from-values|--to-values)
             COMPREPLY=( $(compgen -f -- "$cur") )
             return 0
             ;;
+        --resource|--hide-resource)
+            COMPREPLY=( $(compgen -W "${{resource_kinds}}" -- "$cur") )
+            return 0
+            ;;
     esac
 
-    COMPREPLY=( $(compgen -W "${opts} ${commands}" -- "$cur") )
-}
+    COMPREPLY=( $(compgen -W "${{opts}} ${{commands}}" -- "$cur") )
+}}
 complete -F _helm_impact_completion helm-impact
 """
 
 
 def _zsh_script() -> str:
-    return """\
+    kinds = " ".join(supported_resource_kinds())
+    return f"""\
 #compdef helm-impact
 
-_helm_impact() {
+_helm_impact() {{
     _arguments \\
         '--from[Path to the current (from) chart .tgz]:file:_files' \\
         '--to[Path to the upgraded (to) chart .tgz]:file:_files' \\
         '--from-values[Override values file for the from chart]:file:_files' \\
         '--to-values[Override values file for the to chart]:file:_files' \\
-        '--resource[Only show impact for these resources]:resource:' \\
-        '--hide-resource[Hide impact for these resources]:resource:' \\
+        '*--resource[Only show impact for this resource]:resource:({kinds})' \\
+        '*--hide-resource[Hide impact for this resource]:resource:({kinds})' \\
         '--help[Show help]' \\
         '1:command:(completion)'
-}
+}}
 
 compdef _helm_impact helm-impact
 """
